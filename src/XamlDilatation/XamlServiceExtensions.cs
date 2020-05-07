@@ -192,6 +192,7 @@ namespace XamlDilatation
                 // delete the found registered
                 service.XmlnsDeclarations.Remove(foundNamespace.Prefix);
                 service.XmlnsDeclarations.Add(prefix, newDeclaration);
+                return service;
             }
             // if only prefix exists and overwrite is false
             if (!overwrite && prefixExists) return service;
@@ -291,7 +292,7 @@ namespace XamlDilatation
                 resultPrefix = splitted.Aggregate(string.Empty, (current, split) => current + string.Concat(split.Take(iteration)));
                 resultPrefix = resultPrefix.ToLower();
                 
-                exists = prefixes.Contains(resultPrefix) || iteration < longest;
+                exists = prefixes.Contains(resultPrefix) || iteration == longest;
             }
             
             // if prefix is not used -> return result
