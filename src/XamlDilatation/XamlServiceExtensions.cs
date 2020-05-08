@@ -223,7 +223,8 @@ namespace XamlDilatation
             var existingUrl = service.XmlnsDeclarations.FirstOrDefault(o => o.Value.IsUrlDefinition && o.Value.Url == url).Value;
             var prefixExists = service.XmlnsDeclarations.ContainsKey(prefix);
             var newDeclaration = new XmlnsDeclaration(prefix, url, true);
-
+            newDeclaration.RegisterNamespace(ns);
+            
             // url and prefix exists and overwrite false -> only add namespaces
             if (existingUrl != null && prefixExists && existingUrl.Prefix == prefix && !overwrite)
             {
