@@ -5,7 +5,6 @@ using System.Threading;
 
 namespace XamlDilatation
 {
-
     public static class XamlServiceExtensions
     {
         #region Register ContentProperty
@@ -105,13 +104,48 @@ namespace XamlDilatation
         
         #region Register ShouldSerialize
         
-        public static XamlService RegisterShouldSerialize<T>(this XamlService service, Func<T, bool> shouldSerialize, RegisterPriority priority)
+        /// <summary>
+        /// Registers the should serialize Function with the given T
+        /// </summary>
+        /// <param name="service">The service to register to</param>
+        /// <param name="shouldSerialize">The function that defines the shouldSerialize behavior</param>
+        /// <typeparam name="T">The object itself</typeparam>
+        /// <returns>The service itself</returns>
+        public static XamlService RegisterShouldSerialize<T>(this XamlService service, Func<T, bool> shouldSerialize)
         {
+            var objectType = typeof(T);
+            if(service.ShouldSerializeSettings.ContainsKey(objectType))
+                service.ShouldSerializeSettings[objectType].Register(shouldSerialize);
+            else
+            {
+                var setting = new ShouldSerializeSetting();
+                setting.Register(shouldSerialize);
+                service.ShouldSerializeSettings.Add(objectType, setting);
+            }
+
             return service;
         }
 
-        public static XamlService RegisterShouldSerialize<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldSerialize, RegisterPriority priority)
-        {
+        /// <summary>
+        /// Registers the should serialize Function with the given T and TParent
+        /// </summary>
+        /// <param name="service">The service to register to</param>
+        /// <param name="shouldSerialize">The function that defines the shouldSerialize behavior</param>
+        /// <typeparam name="T">The object itself</typeparam>
+        /// <typeparam name="TParent">The objects parent</typeparam>
+        /// <returns>The service itself</returns>
+        public static XamlService RegisterShouldSerialize<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldSerialize)
+        {            
+            var objectType = typeof(T);
+            if(service.ShouldSerializeSettings.ContainsKey(objectType))
+                service.ShouldSerializeSettings[objectType].Register(shouldSerialize);
+            else
+            {
+                var setting = new ShouldSerializeSetting();
+                setting.Register(shouldSerialize);
+                service.ShouldSerializeSettings.Add(objectType, setting);
+            }
+            
             return service;
         }
 
