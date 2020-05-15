@@ -1,3 +1,5 @@
+# :construction_worker: <strong>WORK IN PROGRESS</strong> :construction_worker:
+
 # XamlDilatation
 Fully customizable Xaml Serializer
 
@@ -6,9 +8,9 @@ Fully customizable Xaml Serializer
 | master | ![.NET Core](https://github.com/Chrissps/XamlDilatation/workflows/.NET%20Core/badge.svg?branch=master) |
 
 
-# XamlServiceExtensions
+## XamlServiceExtensions
 
-## RegisterShouldSerialize
+### RegisterShouldSerialize
 
 ```csharp
 ShouldSerialize<T, TParent>(...);
