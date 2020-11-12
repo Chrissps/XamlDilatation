@@ -9,22 +9,17 @@ namespace XamlDilatation
     {
         #region Register ContentProperty
 
-        public static XamlService RegisterContentProperty<T>(this XamlService service, RegisterPriority priority) => service.RegisterContentProperty(typeof(T), priority);
-        public static XamlService RegisterContentProperty<T, TParent>(this XamlService service, RegisterPriority priority) => service.RegisterContentProperty(typeof(T),typeof(TParent), priority);
-        public static XamlService RegisterContentProperty(this XamlService service, Func<object, object, bool> shouldUseFilter, RegisterPriority priority) => service.RegisterContentProperty<object, object>(shouldUseFilter, priority);
-        
-        public static XamlService RegisterContentProperty(this XamlService service, Type property, RegisterPriority priority)
+        public static XamlService RegisterContentProperty<T>(this XamlService service)
         {
-            service.RegisterContentProperty<object>(RegisterPriority.Highest);
             return service;
         }
 
-        public static XamlService RegisterContentProperty(this XamlService service, Type property, Type parent, RegisterPriority priority)
+        public static XamlService RegisterContentProperty<T, TParent>(this XamlService service)
         {
             return service;
         }
-        
-        public static XamlService RegisterContentProperty<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldUseFilter, RegisterPriority priority)
+
+        public static XamlService RegisterContentProperty<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldUseFilter)
         {
             return service;
         }
@@ -33,21 +28,16 @@ namespace XamlDilatation
         
         #region Register ChildrenProperty
 
-        public static XamlService RegisterChildrenProperty<T>(this XamlService service, RegisterPriority priority) => service.RegisterChildrenProperty(typeof(T), priority);
-        public static XamlService RegisterChildrenProperty<T, TParent>(this XamlService service, RegisterPriority priority) => service.RegisterChildrenProperty(typeof(T),typeof(TParent), priority);
-        public static XamlService RegisterChildrenProperty(this XamlService service, Func<object, object, bool> shouldUseFilter, RegisterPriority priority) => service.RegisterChildrenProperty<object, object>(shouldUseFilter, priority);
-        
-        public static XamlService RegisterChildrenProperty(this XamlService service, Type property, RegisterPriority priority)
-        {
+        public static XamlService RegisterChildrenProperty<T>(this XamlService service)
+        { 
             return service;
         }
-
-        public static XamlService RegisterChildrenProperty(this XamlService service, Type property, Type parent, RegisterPriority priority)
+        public static XamlService RegisterChildrenProperty<T, TParent>(this XamlService service)
         {
             return service;
         }
         
-        public static XamlService RegisterChildrenProperty<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldUseFilter, RegisterPriority priority)
+        public static XamlService RegisterChildrenProperty<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldUseFilter)
         {
             return service;
         }
@@ -55,47 +45,43 @@ namespace XamlDilatation
         #endregion
         
         #region Register StringSerializer
+
+        public static XamlService RegisterStringSerializer<T>(this XamlService service, Func<T, string> serialize, Func<T, bool> shouldSerialize = null) =>
+            RegisterStringSerializer(service, typeof(T),
+                (obj, parentObj) => serialize((T) obj),
+                (obj, parentObj) => shouldSerialize?.Invoke((T) obj) ?? true);
         
-        public static XamlService RegisterStringSerializer<T>(this XamlService service, Func<T, string> serialize, RegisterPriority priority)
+        public static XamlService RegisterStringSerializer<T, TParent>(this XamlService service, Func<T, TParent, string> serialize, Func<T, TParent, bool> shouldSerialize = null) =>
+            RegisterStringSerializer(service, typeof(T),
+                (obj, parentObj) => serialize((T) obj, (TParent) parentObj),
+                (obj, parentObj) => shouldSerialize?.Invoke((T) obj, (TParent) parentObj) ?? true);
+
+        public static XamlService RegisterStringSerializer(this XamlService service, Type type, Func<object, object, string> serialize, Func<object, object, bool> shouldSerialize = null)
         {
+            if (serialize is null) return service;
+            if (service is null) return null;
+
+            var setting = new StringSerializerSetting(type, shouldSerialize, serialize);
+            if (service.StringSerializerSettings.ContainsKey(type))
+                service.StringSerializerSettings[type] = setting;
+            else
+                service.StringSerializerSettings.Add(type, setting);
+
             return service;
         }
 
-        public static XamlService RegisterStringSerializer<T>(this XamlService service, Func<T, string> serialize, Func<T, bool> shouldSerialize, RegisterPriority priority)
+        public static StringSerializerSetting GetSerializerSetting(this XamlService service, Type type)
         {
-            return service;
-        }
-        
-        public static XamlService RegisterStringSerializer<T, TParent>(this XamlService service, Func<T, TParent, string> serialize, RegisterPriority priority)
-        {
-            return service;
-        }
+            if (service is null) return null;
 
-        public static XamlService RegisterStringSerializer<T, TParent>(this XamlService service, Func<T, TParent, string> serialize, Func<T, TParent, bool> shouldSerialize, RegisterPriority priority)
-        {
-            return service;
+            return service.StringSerializerSettings.ContainsKey(type) ? service.StringSerializerSettings[type] : null;
         }
 
         #endregion
         
         #region Register ObjectConverter
         
-        public static XamlService RegisterObjectConverter<T, TOut>(this XamlService service, Func<T, TOut> convert, RegisterPriority priority)
-        {
-            return service;
-        }
-
-        public static XamlService RegisterObjectConverter<T, TOut>(this XamlService service, Func<T, TOut> convert, Func<T, bool> shouldConvert, RegisterPriority priority)
-        {
-            return service;
-        }
-        
-        public static XamlService RegisterObjectConverter<T, TParent, TOut>(this XamlService service, Func<T, TParent, TOut> convert, RegisterPriority priority)
-        {
-            return service;
-        }
-
-        public static XamlService RegisterObjectConverter<T, TParent, TOut>(this XamlService service, Func<T, TParent, TOut> convert, Func<T, TParent, bool> shouldConvert, RegisterPriority priority)
+        public static XamlService RegisterObjectConverter<T, TParent, TOut>(this XamlService service, Func<T, TParent, TOut> convert, Func<T, TParent, bool> shouldConvert)
         {
             return service;
         }
@@ -104,63 +90,62 @@ namespace XamlDilatation
         
         #region Register ShouldSerialize
         
-        /// <summary>
-        /// Registers the should serialize Function with the given T
-        /// </summary>
-        /// <param name="service">The service to register to</param>
-        /// <param name="shouldSerialize">The function that defines the shouldSerialize behavior</param>
-        /// <typeparam name="T">The object itself</typeparam>
-        /// <returns>The service itself</returns>
-        public static XamlService RegisterShouldSerialize<T>(this XamlService service, Func<T, bool> shouldSerialize)
+        public static XamlService RegisterShouldSerialize<T>(this XamlService service, bool shouldSerializeFlag)
         {
-            var objectType = typeof(T);
-            if(service.ShouldSerializeSettings.ContainsKey(objectType))
-                service.ShouldSerializeSettings[objectType].Register(shouldSerialize);
-            else
-            {
-                var setting = new ShouldSerializeSetting();
-                setting.Register(shouldSerialize);
-                service.ShouldSerializeSettings.Add(objectType, setting);
-            }
-
-            return service;
-        }
-
-        /// <summary>
-        /// Registers the should serialize Function with the given T and TParent
-        /// </summary>
-        /// <param name="service">The service to register to</param>
-        /// <param name="shouldSerialize">The function that defines the shouldSerialize behavior</param>
-        /// <typeparam name="T">The object itself</typeparam>
-        /// <typeparam name="TParent">The objects parent</typeparam>
-        /// <returns>The service itself</returns>
-        public static XamlService RegisterShouldSerialize<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldSerialize)
-        {            
-            var objectType = typeof(T);
-            if(service.ShouldSerializeSettings.ContainsKey(objectType))
-                service.ShouldSerializeSettings[objectType].Register(shouldSerialize);
-            else
-            {
-                var setting = new ShouldSerializeSetting();
-                setting.Register(shouldSerialize);
-                service.ShouldSerializeSettings.Add(objectType, setting);
-            }
+            if (service is null) return null;
+            var type = typeof(T);
             
+            var setting = new ShouldSerializerSetting(type, shouldSerializeFlag);
+            if (service.ShouldSerializerSettings.ContainsKey(type))
+                service.ShouldSerializerSettings[type] = setting;
+            else
+                service.ShouldSerializerSettings.Add(type, setting);
+
             return service;
         }
 
-        #endregion
-
-        #region Register ThreadExecution
-        
-        public static XamlService RegisterThreadExecution(this XamlService service, Thread thread, RegisterPriority priority)
+        public static XamlService RegisterShouldSerialize<T, TParent>(this XamlService service, bool shouldSerializeFlag)
         {
+            if (service is null) return null;
+            var type = typeof(T);
+            var parentType = typeof(TParent);
+            
+            var setting = new ShouldSerializerSetting(type, parentType, shouldSerializeFlag);
+            if (service.ShouldSerializerSettings.ContainsKey(type))
+                service.ShouldSerializerSettings[type] = setting;
+            else
+                service.ShouldSerializerSettings.Add(type, setting);
+
             return service;
         }
         
-        public static XamlService RegisterThreadExecution(this XamlService service, Action<Action> executeInside, RegisterPriority priority)
+        public static XamlService RegisterShouldSerializer<T>(this XamlService service, Func<T, bool> shouldSerialize) =>
+            RegisterShouldSerializer(service, typeof(T),
+                (obj, _) => shouldSerialize.Invoke((T) obj));
+        
+        public static XamlService RegisterShouldSerializer<T, TParent>(this XamlService service, Func<T, TParent, bool> shouldSerialize) =>
+            RegisterShouldSerializer(service, typeof(T),
+                (obj, parentObj) => shouldSerialize((T) obj, (TParent) parentObj));
+
+        public static XamlService RegisterShouldSerializer(this XamlService service, Type type, Func<object, object, bool> shouldSerialize = null)
         {
+            if (shouldSerialize is null) return service;
+            if (service is null) return null;
+
+            var setting = new ShouldSerializerSetting(type, shouldSerialize);
+            if (service.ShouldSerializerSettings.ContainsKey(type))
+                service.ShouldSerializerSettings[type] = setting;
+            else
+                service.ShouldSerializerSettings.Add(type, setting);
+
             return service;
+        }
+
+        public static ShouldSerializerSetting GetShouldSerializeSetting(this XamlService service, Type type)
+        {
+            if (service is null) return null;
+
+            return service.ShouldSerializerSettings.ContainsKey(type) ? service.ShouldSerializerSettings[type] : null;
         }
         
         #endregion
