@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 
 // ReSharper disable CollectionNeverUpdated.Global
 
@@ -11,7 +12,9 @@ namespace XamlDilatation
         public readonly Dictionary<string, XmlnsDeclaration> XmlnsDeclarations = new Dictionary<string, XmlnsDeclaration>();
         
         public readonly Dictionary<Type, StringSerializerSetting> StringSerializerSettings = new Dictionary<Type, StringSerializerSetting>();
-        public readonly Dictionary<Type, ShouldSerializerSetting> ShouldSerializerSettings = new Dictionary<Type, ShouldSerializerSetting>();
+        public readonly Dictionary<PropertyInfo, ShouldSerializeSetting> ShouldSerializeSettings = new Dictionary<PropertyInfo, ShouldSerializeSetting>();
+        public readonly Dictionary<PropertyKey, ContentPropertySetting> ContentPropertySettings = new Dictionary<PropertyKey, ContentPropertySetting>();
+        public readonly Dictionary<PropertyInfo, ChildrenPropertySetting> ChildrenPropertySettings = new Dictionary<PropertyInfo, ChildrenPropertySetting>();
         
         public XamlService()
         {

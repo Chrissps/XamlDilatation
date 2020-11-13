@@ -7,10 +7,12 @@ namespace XamlDilatation
 {
     public static class Extensions
     {
+        public static PropertyInfo GetPublicPropertyInfo(this Type type, string name) =>
+            type.GetPublicProperties(out _).First(o => o.Name == name);
+
         public static List<PropertyInfo> GetPublicProperties(this Type type, out List<Type> foundTypes)
         {
-            const BindingFlags flags = BindingFlags.FlattenHierarchy
-                                       | BindingFlags.Public
+            const BindingFlags flags = BindingFlags.Public
                                        | BindingFlags.Instance;
 
             if (!type.IsInterface)

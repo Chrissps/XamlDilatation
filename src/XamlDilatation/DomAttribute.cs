@@ -48,5 +48,10 @@ namespace XamlDilatation
             MappedObject = null;
             _mappedObjectType = null;
         }
+
+        public override string ToString()
+        {
+            return $"{Name}: {Content}";
+        }
     }
 }

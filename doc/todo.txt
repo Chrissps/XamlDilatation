@@ -1,0 +1,12 @@
+x RegisterContentProperty
+x RegisterChildrenProperty
+x RegisterStringSerializer
+RegisterObjectConverter
+x RegisterShouldSerialize
+
+x RegisterNamespace
+x RegisterUrl
+
+überall delegates
+
+x GeneratePrefix

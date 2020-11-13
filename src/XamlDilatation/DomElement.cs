@@ -59,6 +59,9 @@ namespace XamlDilatation
             GenerateAttributes(allProps);
             // generate children
             GenerateChildren(allProps);
+            
+            Content?.CreateHierarchy();
+            Children?.ForEach(o => o.CreateHierarchy());
         }
 
         private void ExecuteObjectConverter(List<PropertyInfo> allProps)
@@ -74,14 +77,11 @@ namespace XamlDilatation
             foreach (var info in allProps.ToList())
             {
                 var value = info.GetValue(MappedObject);
-                var setting = Service.GetShouldSerializeSetting(info.PropertyType);
+                var setting = Service.GetShouldSerializeSetting(info);
                 if (setting is null) continue;
-
-                if (setting.ShouldSerializeFlag.HasValue && !setting.ShouldSerializeFlag.Value
-                    || !setting.ShouldSerializeFlag.HasValue && !setting.ShouldSerialize(value, MappedObject))
-                {
-                    allProps.Remove(info);
-                }
+                if (setting.ShouldSerialize(value, MappedObject)) continue;
+                
+                allProps.Remove(info);
             }
         }
 
@@ -100,12 +100,34 @@ namespace XamlDilatation
 
         private void SetContent(List<PropertyInfo> allProps)
         {
-            // get contentproperty
+            foreach (var info in allProps.ToList())
+            {
+                var key = PropertyKey.Get(info);
+                var setting = Service.GetContentPropertySetting(key);
+                var value = info.GetValue(MappedObject);
+                if (setting is null) continue;
+                if (!setting.IsContentProperty(MappedObject, value)) continue;
+                
+                Content = new DomElement(this, value, Service);
+                allProps.Remove(info);
+                break;
+            }
         }
         
         private void GenerateChildren(List<PropertyInfo> allProps)
         {
-            // get childrenproperty
+            foreach (var info in allProps.ToList())
+            {
+                var setting = Service.GetChildrenPropertySetting(info);
+                var value = info.GetValue(MappedObject);
+                if (setting is null) continue;
+                if (!setting.IsChildrenProperty(MappedObject, value, out var children)) continue;
+                if (children is null) break;
+
+                Children.AddRange(children.Select(o => new DomElement(this, o, Service)));
+                allProps.Remove(info);
+                break;
+            }
         }
 
         private void GenerateAttributes(List<PropertyInfo> allProps)
@@ -128,7 +150,9 @@ namespace XamlDilatation
                 allProps.Remove(info);
             }
         }
-        
+
+        public override string ToString() => $"{this.MappedObjectType.Name}";
+
         public void Dispose()
         {
             if (IsDisposed) return;
