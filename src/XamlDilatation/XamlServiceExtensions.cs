@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using XamlDilatation.Settings;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace XamlDilatation
@@ -49,9 +51,10 @@ namespace XamlDilatation
         public static XamlService RegisterContentProperty<T>(this XamlService service, string propertyName, bool isContentPropertyFlag) =>
             RegisterContentProperty(service, typeof(T), propertyName, isContentPropertyFlag);
         
-        public static ContentPropertySetting GetContentPropertySetting(this XamlService service, PropertyKey propertyKey)
+        public static ContentPropertySetting GetContentPropertySetting(this XamlService service, PropertyInfo propertyInfo)
         {
             if (service is null) return null;
+            var propertyKey = PropertyKey.Get(propertyInfo);
 
             return service.ContentPropertySettings.ContainsKey(propertyKey) ? service.ContentPropertySettings[propertyKey] : null;
         }
@@ -109,21 +112,12 @@ namespace XamlDilatation
         
         #region Register StringSerializer
 
-        public static XamlService RegisterStringSerializer<T>(this XamlService service, Func<T, string> serialize, Func<T, bool> shouldSerialize = null) =>
-            RegisterStringSerializer(service, typeof(T),
-                (obj, parentObj) => serialize((T) obj),
-                (obj, parentObj) => shouldSerialize?.Invoke((T) obj) ?? true);
-        
-        public static XamlService RegisterStringSerializer<T, TParent>(this XamlService service, Func<T, TParent, string> serialize, Func<T, TParent, bool> shouldSerialize = null) =>
-            RegisterStringSerializer(service, typeof(T),
-                (obj, parentObj) => serialize((T) obj, (TParent) parentObj),
-                (obj, parentObj) => shouldSerialize?.Invoke((T) obj, (TParent) parentObj) ?? true);
-
-        public static XamlService RegisterStringSerializer(this XamlService service, Type type, Func<object, object, string> serialize, Func<object, object, bool> shouldSerialize = null)
-        {
+        public static XamlService RegisterStringSerializer<T>(this XamlService service, Func<T, string> serialize, Func<T, bool> shouldSerialize = null)
+        {           
             if (serialize is null) return service;
             if (service is null) return null;
-
+            var type = typeof(T);
+            
             var setting = new StringSerializerSetting(type, shouldSerialize, serialize);
             if (service.StringSerializerSettings.ContainsKey(type))
                 service.StringSerializerSettings[type] = setting;
@@ -132,7 +126,7 @@ namespace XamlDilatation
 
             return service;
         }
-
+        
         public static StringSerializerSetting GetSerializerSetting(this XamlService service, Type type)
         {
             if (service is null) return null;
@@ -153,49 +147,43 @@ namespace XamlDilatation
         
         #region Register ShouldSerialize
         
-        public static XamlService RegisterShouldSerialize(this XamlService service, Type type, string propertyName, bool shouldSerializeFlag)
+        public static XamlService RegisterShouldSerialize<TParent>(this XamlService service, string propertyName, bool shouldSerialize)
         {
             if (service is null) return null;
 
-            var propertyInfo = type.GetPublicPropertyInfo(propertyName);
+            var propertyKey = propertyName.GetPropertyKey<TParent>();
             
-            var setting = new ShouldSerializeSetting(propertyInfo, shouldSerializeFlag);
-            if (service.ShouldSerializeSettings.ContainsKey(propertyInfo))
-                service.ShouldSerializeSettings[propertyInfo] = setting;
+            var setting = new ShouldSerializeSetting(propertyKey, shouldSerialize);
+            if (service.ShouldSerializeSettings.ContainsKey(propertyKey))
+                service.ShouldSerializeSettings[propertyKey] = setting;
             else
-                service.ShouldSerializeSettings.Add(propertyInfo, setting);
+                service.ShouldSerializeSettings.Add(propertyKey, setting);
 
             return service;
         }
 
-        public static XamlService RegisterShouldSerialize(this XamlService service, Type type, string propertyName, Func<object, object, bool> shouldSerialize)
+        public static XamlService RegisterShouldSerialize<TParent, T>(this XamlService service, string propertyName, ShouldSerializeDelegate<TParent, T> shouldSerialize)
         {
             if (shouldSerialize is null) return service;
             if (service is null) return null;
 
-            var propertyInfo = type.GetPublicPropertyInfo(propertyName);
+            var propertyKey = propertyName.GetPropertyKey<TParent>();
             
-            var setting = new ShouldSerializeSetting(propertyInfo, shouldSerialize);
-            if (service.ShouldSerializeSettings.ContainsKey(propertyInfo))
-                service.ShouldSerializeSettings[propertyInfo] = setting;
+            var setting = new ShouldSerializeSetting<TParent, T>(propertyKey, shouldSerialize);
+            if (service.ShouldSerializeSettings.ContainsKey(propertyKey))
+                service.ShouldSerializeSettings[propertyKey] = setting;
             else
-                service.ShouldSerializeSettings.Add(propertyInfo, setting);
+                service.ShouldSerializeSettings.Add(propertyKey, setting);
 
             return service;
         }
-
-        public static XamlService RegisterShouldSerialize<T>(this XamlService service, string propertyName, Func<T, object, bool> shouldSerialize) =>
-            RegisterShouldSerialize(service, typeof(T), propertyName,
-                (obj, value) => shouldSerialize.Invoke((T) obj, value));
-        
-        public static XamlService RegisterShouldSerialize<T>(this XamlService service, string propertyName, bool shouldSerialize) =>
-            RegisterShouldSerialize(service, typeof(T), propertyName, shouldSerialize);
         
         public static ShouldSerializeSetting GetShouldSerializeSetting(this XamlService service, PropertyInfo propertyInfo)
         {
             if (service is null) return null;
+            var propertyKey = PropertyKey.Get(propertyInfo);
 
-            return service.ShouldSerializeSettings.ContainsKey(propertyInfo) ? service.ShouldSerializeSettings[propertyInfo] : null;
+            return service.ShouldSerializeSettings.ContainsKey(propertyKey) ? service.ShouldSerializeSettings[propertyKey] : null;
         }
         
         #endregion

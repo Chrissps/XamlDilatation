@@ -1,36 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace XamlDilatation
 {
     public class PropertyKey
     {
-        public static readonly Dictionary<string, PropertyKey> Cache = new Dictionary<string, PropertyKey>();
+        private static readonly Dictionary<string, PropertyKey> _cache = new();
         
         public readonly Type DeclaringType;
 
         public readonly Type PropertyType;
-
-        public readonly string PropertyName;
-
-        public PropertyKey(Type declaringType, Type propertyType, string propertyName)
-        {
-            DeclaringType = declaringType;
-            PropertyType = propertyType;
-            PropertyName = propertyName;
-        }
         
-        public PropertyKey(PropertyInfo info)
+        public readonly string Name;
+
+        private PropertyKey(PropertyInfo info)
         {
             DeclaringType = info.DeclaringType;
             PropertyType = info.PropertyType;
-            PropertyName = info.Name;
+            Name = info.Name;
         }
 
-        public override int GetHashCode() => BuildString(DeclaringType, PropertyType, PropertyName).GetHashCode();
+        public override int GetHashCode() => ToString().GetHashCode();
 
-        public override string ToString() => BuildString(DeclaringType, PropertyType, PropertyName);
+        public override string ToString() => BuildString(this);
 
         public override bool Equals(object obj)
         {
@@ -42,16 +36,19 @@ namespace XamlDilatation
         private static string BuildString(Type declaringType, Type propertyType, string propertyName) =>
             $"{declaringType.FullName}{propertyType.FullName}{propertyName}";
 
-        private static string BuildString(PropertyInfo info) =>
+        private static string BuildString(PropertyInfo info) => 
+            BuildString(info.DeclaringType, info.PropertyType, info.Name);
+
+        private static string BuildString(PropertyKey info) => 
             BuildString(info.DeclaringType, info.PropertyType, info.Name);
 
         public static PropertyKey Get(PropertyInfo info)
         {
             var key = BuildString(info);
-            if (Cache.ContainsKey(key)) return Cache[key];
+            if (_cache.ContainsKey(key)) return _cache[key];
             
-            Cache.Add(key, new PropertyKey(info));
-            return Cache[key];
+            _cache.Add(key, new PropertyKey(info));
+            return _cache[key];
         }
     }
 }

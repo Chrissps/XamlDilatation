@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using XamlDilatation.Settings;
 
 // ReSharper disable CollectionNeverUpdated.Global
 
@@ -12,7 +13,7 @@ namespace XamlDilatation
         public readonly Dictionary<string, XmlnsDeclaration> XmlnsDeclarations = new Dictionary<string, XmlnsDeclaration>();
         
         public readonly Dictionary<Type, StringSerializerSetting> StringSerializerSettings = new Dictionary<Type, StringSerializerSetting>();
-        public readonly Dictionary<PropertyInfo, ShouldSerializeSetting> ShouldSerializeSettings = new Dictionary<PropertyInfo, ShouldSerializeSetting>();
+        public readonly Dictionary<PropertyKey, ShouldSerializeSetting> ShouldSerializeSettings = new Dictionary<PropertyKey, ShouldSerializeSetting>();
         public readonly Dictionary<PropertyKey, ContentPropertySetting> ContentPropertySettings = new Dictionary<PropertyKey, ContentPropertySetting>();
         public readonly Dictionary<PropertyInfo, ChildrenPropertySetting> ChildrenPropertySettings = new Dictionary<PropertyInfo, ChildrenPropertySetting>();
         
@@ -39,6 +40,8 @@ namespace XamlDilatation
             this.RegisterStringSerializer<float>(arg1 => arg1.ToString(CultureInfo.InvariantCulture));
             this.RegisterStringSerializer<double>(arg1 => arg1.ToString(CultureInfo.InvariantCulture));
             this.RegisterStringSerializer<decimal>(arg1 => arg1.ToString(CultureInfo.InvariantCulture));
+            
+            this.RegisterShouldSerialize<string>(nameof(string.Length), false);
             
             return this;
         }

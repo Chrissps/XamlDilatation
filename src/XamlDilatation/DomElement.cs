@@ -102,8 +102,7 @@ namespace XamlDilatation
         {
             foreach (var info in allProps.ToList())
             {
-                var key = PropertyKey.Get(info);
-                var setting = Service.GetContentPropertySetting(key);
+                var setting = Service.GetContentPropertySetting(info);
                 var value = info.GetValue(MappedObject);
                 if (setting is null) continue;
                 if (!setting.IsContentProperty(MappedObject, value)) continue;

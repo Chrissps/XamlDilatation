@@ -11,7 +11,6 @@ namespace XamlDilatation.Wpf
     {        
         public static XamlService RegisterWpf(this XamlService service)
         {
-            service.RegisterContentProperty<Label>(nameof(Label.Content), (label, value) => value is not null);
             service.RegisterChildrenProperty<Grid>(
                 nameof(Grid.Children),
                 (object element, object value, out List<object> children) =>

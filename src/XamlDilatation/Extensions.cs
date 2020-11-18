@@ -7,6 +7,18 @@ namespace XamlDilatation
 {
     public static class Extensions
     {
+        public static PropertyKey GetPropertyKey(this Type type, string name)
+        {
+            var info = type.GetPublicPropertyInfo(name);
+            return info is null ? null : PropertyKey.Get(info);
+        }
+        
+        public static PropertyKey GetPropertyKey<T>(this string name)
+        {
+            var info = typeof(T).GetPublicPropertyInfo(name);
+            return info is null ? null : PropertyKey.Get(info);
+        }
+        
         public static PropertyInfo GetPublicPropertyInfo(this Type type, string name) =>
             type.GetPublicProperties(out _).First(o => o.Name == name);
 
