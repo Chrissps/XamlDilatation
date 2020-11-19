@@ -13,7 +13,7 @@ namespace XamlDilatation
         
         public readonly List<Type> UsedTypes; 
         
-        public readonly XamlService Service; 
+        public readonly XamlService Service;
         
         public DomElement Parent { get; set; }
         
